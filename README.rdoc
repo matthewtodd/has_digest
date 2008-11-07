@@ -1,5 +1,7 @@
 =HasDigest
 
+HasDigest provides an ActiveRecord macro, +has_digest+, that captures the pattern of writing encrypted passwords, api tokens, and the like in +before_save+ callbacks. Digest attributes may stand alone, generated from a random string, or may depend on the values of other attributes. Digests with dependencies are also magically salted for models having a +salt+ attribute.
+
 See the documentation for the +has_digest+ method for options.
 
 

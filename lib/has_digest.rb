@@ -1,10 +1,21 @@
 require 'digest/sha1'
 
 module HasDigest
-  def self.included(base)
+  def self.included(base) # :nodoc:
     base.extend(ClassMethods)
   end
 
+  # Returns a 40-character hexadecimal token. When no +values+ are given, the
+  # token is seeded with a randomized form of the current time. When +values+
+  # are given, the token is seeded with them instead, unless any of them
+  # evaluate to +false+, in which case the returned token is +nil+.
+  #
+  # +digest+ is available as an instance method on any of your +ActiveRecord+ models, so you can use it as needed. For example:
+  #   class User < ActiveRecord::Base
+  #     def authenticate(password)
+  #       encrypted_password == digest(salt, password)
+  #     end
+  #   end
   def digest(*values)
     if values.empty?
       Digest::SHA1.hexdigest(Time.now.to_default_s.split(//).sort_by { Kernel.rand }.join)
@@ -16,8 +27,8 @@ module HasDigest
   end
 
   module ClassMethods
-    # +has_digest+ gives the class it is called on a before_save callback that
-    # writes a 40-character hexadecimal string into the given +attribute+. The
+    # Gives the class it is called on a +before_save+ callback that writes a
+    # 40-character hexadecimal string into the given +attribute+. The
     # generated string may depend on other (possibly synthetic) attributes of
     # the model, being automatically regenerated when they change. One key is
     # supported in the +options+ hash:
@@ -29,8 +40,8 @@ module HasDigest
     # === Magic Salting
     # If the model in question has a +salt+ attribute, its +salt+ be
     # automatically populated on create and automatically mixed into any
-    # digests with dependencies on other attributes, saving you a little bit of work
-    # when dealing with passwords.
+    # digests with dependencies on other attributes, saving you a little bit
+    # of work when dealing with passwords.
     #
     # ===Examples
     #   # token will be generated on create

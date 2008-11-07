@@ -1,0 +1,1 @@
+* TODO Automatically create an +attr_accessor+ for each synthetic attribute dependency?
