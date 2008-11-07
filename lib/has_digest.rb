@@ -5,19 +5,43 @@ module HasDigest
     base.extend(ClassMethods)
   end
 
-  def digest
-    Digest::SHA1.hexdigest(Time.now.to_default_s.split(//).sort_by { Kernel.rand }.join)
+  def digest(*values)
+    if values.any?
+      Digest::SHA1.hexdigest(values.join('--'))
+    else
+      Digest::SHA1.hexdigest(random_string)
+    end
+  end
+
+  def random_string
+    Time.now.to_default_s.split(//).sort_by { Kernel.rand }.join
   end
 
   module ClassMethods
-    def has_digest(attribute)
-      module_eval(<<-EOS, "(__HAS_DIGEST__)", 1)
-        def digest_#{attribute}
-          self.#{attribute} = digest
-        end
-      EOS
+    def has_digest(attribute, options = {})
+      digest_attribute = "digest_#{attribute}".to_sym
 
-      before_create "digest_#{attribute}".to_sym
+      if options[:include]
+        before_save digest_attribute
+
+        define_method(digest_attribute) do
+          values = case options[:include]
+            when String, Symbol
+              [self.send(options[:include])]
+            else
+              options[:include].map { |attribute_name| self.send(attribute_name) }
+            end
+
+          self[attribute] = digest(*values)
+        end
+
+      else
+        before_create digest_attribute
+
+        define_method(digest_attribute) do
+          self[attribute] = digest
+        end
+      end
     end
   end
 end
