@@ -6,10 +6,12 @@ module HasDigest
   end
 
   def digest(*values)
-    if values.any?
+    if values.empty?
+      Digest::SHA1.hexdigest(random_string)
+    elsif values.all?
       Digest::SHA1.hexdigest(values.join('--'))
     else
-      Digest::SHA1.hexdigest(random_string)
+      nil
     end
   end
 

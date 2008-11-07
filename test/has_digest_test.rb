@@ -88,6 +88,14 @@ class HasDigestTest < Test::Unit::TestCase
         setup { @instance.update_attributes(:remember_me_token_expires_at => 3.weeks.from_now) }
         should_change '@instance.remember_me_token'
       end
+
+      context 'update one attribute to nil' do
+        setup { @instance.update_attributes(:remember_me_token_expires_at => nil) }
+
+        should 'change digested attribute to nil' do
+          assert_nil @instance.remember_me_token
+        end
+      end
     end
   end
 end
