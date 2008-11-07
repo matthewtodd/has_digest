@@ -1,13 +1,43 @@
-HasDigest
-=========
+=HasDigest
 
-Introduction goes here.
+See the documentation for the +has_digest+ method for options.
 
 
-Example
-=======
+==Example
 
-Example goes here.
+In your model:
+
+  class User < ActiveRecord::Base
+    has_digest :encrypted_password, :depends => :password
+
+    attr_accessor :password
+
+    def authenticate(password)
+      encrypted_password == digest(salt, password)
+    end
+  end
+
+In your migrations:
+
+  class CreateUsers < ActiveRecord::Migration
+    def self.up
+      create_table :users do |t|
+        t.string :login
+        t.string :salt, :limit => 40
+        t.string :encrypted_password, :limit => 40
+      end
+    end
+
+    def self.down
+      drop_table :users
+    end
+  end
+
+In your tests:
+
+  class UserTest < ActiveSupport::TestCase
+    should_have_digest :encrypted_password
+  end
 
 
 Copyright (c) 2008 Matthew Todd, released under the MIT license
