@@ -17,7 +17,7 @@ module HasDigest
 
   module ClassMethods
     # +has_digest+ gives the class it is called on a before_save callback that
-    # writes a 40-character hexadecimal string into the given attribute. The
+    # writes a 40-character hexadecimal string into the given +attribute+. The
     # generated string may depend on other (possibly synthetic) attributes of
     # the model, being automatically regenerated when they change. One key is
     # supported in the +options+ hash:
@@ -27,9 +27,9 @@ module HasDigest
     #   effectively also set +attribute+ to +nil+.
     #
     # === Magic Salting
-    # If the model in question has a (non-synthetic) +salt+ attribute, its
-    # +salt+ be automatically populated on create and automatically mixed into
-    # any digests that depend on other attributes, saving you a little bit of work
+    # If the model in question has a +salt+ attribute, its +salt+ be
+    # automatically populated on create and automatically mixed into any
+    # digests with dependencies on other attributes, saving you a little bit of work
     # when dealing with passwords.
     #
     # ===Examples
