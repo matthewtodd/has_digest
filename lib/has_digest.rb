@@ -37,11 +37,19 @@ module HasDigest
     #   Setting any (non-synthetic) one of these attributes to +nil+ will
     #   effectively also set +attribute+ to +nil+.
     #
-    # === Magic Salting
+    # ===Magic Salting
     # If the model in question has a +salt+ attribute, its +salt+ be
     # automatically populated on create and automatically mixed into any
     # digests with dependencies on other attributes, saving you a little bit
     # of work when dealing with passwords.
+    #
+    # ===Magic Synthetic Attributes
+    # If the model in question doesn't have a database column for one of your
+    # digest dependencies, an +attr_accessor+ for that synthetic dependency
+    # will be created automatically. For example, if you write <tt>has_digest
+    # :encrypted_password, :depends => :password</tt> and don't have a
+    # +password+ column for your model, the +attr_accessor+ for +password+
+    # will be automatically created, saving you a redundant line of code.
     #
     # ===Examples
     #   # token will be generated on create
@@ -50,9 +58,9 @@ module HasDigest
     #   end
     #
     #   # encrypted_password will be generated on save whenever @password is not nil
+    #   # (Automatically calls attr_accessor :password.)
     #   class User < ActiveRecord::Base
     #     has_digest :encrypted_password, :depends => :password
-    #     attr_accessor :password
     #   end
     #
     #   # remember_me_token will be generated on save whenever login or remember_me_until have changed.
@@ -62,9 +70,9 @@ module HasDigest
     #   end
     #
     #   # api_token will be blank until user.update_attributes(:generate_api_token => true).
+    #   # (Automatically calls attr_accessor :generate_api_token.)
     #   class User < ActiveRecord::Base
     #     has_digest :api_token, :depends => :generate_api_token
-    #     attr_accessor :generate_api_token
     #   end
     def has_digest(attribute, options = {})
       digest_attribute = "digest_#{attribute}".to_sym
@@ -79,20 +87,21 @@ module HasDigest
 
       before_save digest_attribute
 
-      define_method(digest_attribute) do
-        if options[:depends]
-          dependencies = []
-          dependencies << :salt if self.class.column_names.include?('salt')
-          dependencies << options[:depends]
-          dependencies.flatten!
+      if options[:depends]
+        dependencies = []
+        dependencies << :salt if column_names.include?('salt')
+        dependencies << options[:depends]
+        dependencies.flatten!
 
-          values = dependencies.map { |dependency| self.send(dependency) }
+        synthetic_dependencies = dependencies - column_names.map(&:to_sym)
+        synthetic_dependencies.each { |name| attr_accessor name }
 
-          synthetic_dependencies = dependencies - attribute_names.map(&:to_sym)
-          synthetic_dependencies.map! { |name| self.send(name) }
-
-          self[attribute] = digest(*values) if synthetic_dependencies.all?
-        else
+        define_method(digest_attribute) do
+          value = lambda { |name| send(name) }
+          self[attribute] = digest(*dependencies.map(&value)) if synthetic_dependencies.map(&value).all?
+        end
+      else
+        define_method(digest_attribute) do
           self[attribute] = digest if self.new_record?
         end
       end

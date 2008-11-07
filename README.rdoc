@@ -12,8 +12,6 @@ In your model:
   class User < ActiveRecord::Base
     has_digest :encrypted_password, :depends => :password
 
-    attr_accessor :password
-
     def authenticate(password)
       encrypted_password == digest(salt, password)
     end

@@ -45,7 +45,6 @@ class HasDigestTest < Test::Unit::TestCase
   context 'Model with a single-attribute-based digest' do
     setup do
       @klass = model_with_attributes(:encrypted_password) do
-        attr_accessor :password
         has_digest :encrypted_password, :depends => :password
       end
     end
