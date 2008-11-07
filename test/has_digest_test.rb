@@ -66,31 +66,39 @@ class HasDigestTest < Test::Unit::TestCase
         setup { @instance.update_attributes(:password => 'NEW PASSWORD') }
         should_change '@instance.encrypted_password'
       end
+
+      context 'loaded completely fresh' do
+        setup { @instance = @klass.find(@instance.id) }
+
+        context 'and saved' do
+          setup { @instance.save }
+          should_not_change '@instance.encrypted_password'
+        end
+      end
     end
   end
 
   context 'Model with a multiple-attribute-based digest' do
     setup do
-      @klass = model_with_attributes(:remember_me_token) do
-        attr_accessor :login, :remember_me_token_expires_at
-        has_digest :remember_me_token, :depends => [:login, :remember_me_token_expires_at]
+      @klass = model_with_attributes(:login, :remember_me_token, :remember_me_until) do
+        has_digest :remember_me_token, :depends => [:login, :remember_me_until]
       end
     end
 
     context 'saved instance' do
-      setup { @instance = @klass.create(:login => 'bob', :remember_me_token_expires_at => 2.weeks.from_now) }
+      setup { @instance = @klass.create(:login => 'bob', :remember_me_until => 2.weeks.from_now) }
 
       should 'have digested attribute' do
         assert_not_nil @instance.remember_me_token
       end
 
       context 'update one attribute' do
-        setup { @instance.update_attributes(:remember_me_token_expires_at => 3.weeks.from_now) }
+        setup { @instance.update_attributes(:remember_me_until => 3.weeks.from_now) }
         should_change '@instance.remember_me_token'
       end
 
       context 'update one attribute to nil' do
-        setup { @instance.update_attributes(:remember_me_token_expires_at => nil) }
+        setup { @instance.update_attributes(:remember_me_until => nil) }
 
         should 'change digested attribute to nil' do
           assert_nil @instance.remember_me_token

@@ -31,13 +31,17 @@ module HasDigest
 
       define_method(digest_attribute) do
         if options[:depends]
-          values = []
-          values << :salt if self.class.column_names.include?('salt')
-          values << options[:depends]
-          values.flatten!
-          values.map! { |value| self.send(value) }
+          dependencies = []
+          dependencies << :salt if self.class.column_names.include?('salt')
+          dependencies << options[:depends]
+          dependencies.flatten!
 
-          self[attribute] = digest(*values)
+          values = dependencies.map { |dependency| self.send(dependency) }
+
+          synthetic_dependencies = dependencies - attribute_names.map(&:to_sym)
+          synthetic_dependencies.map! { |name| self.send(name) }
+
+          self[attribute] = digest(*values) if synthetic_dependencies.all?
         else
           self[attribute] = digest if self.new_record?
         end
