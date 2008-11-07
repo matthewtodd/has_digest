@@ -13,9 +13,16 @@ def model_with_attributes(*attributes, &block)
     end
   end
 
-  ActiveRecord::Base.extend(HasDigest)
-  Object.send(:remove_const, "Model") rescue nil
-  Object.const_set("Model", Class.new(ActiveRecord::Base))
+  ActiveRecord::Base.send(:include, HasDigest)
+  Object.send(:remove_const, 'Model') rescue nil
+  Object.const_set('Model', Class.new(ActiveRecord::Base))
   Model.class_eval &block
-  Model
+
+  return Model
+end
+
+class Test::Unit::TestCase
+  def assert_unique(collection)
+    assert_same_elements collection.uniq, collection
+  end
 end

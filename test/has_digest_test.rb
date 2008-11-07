@@ -9,16 +9,35 @@ class HasDigestTest < Test::Unit::TestCase
     end
 
     context 'instance' do
-      setup do
-        @instance = @klass.new
-      end
+      setup { @instance = @klass.new }
 
       context 'save' do
-        setup do
-          @instance.save
-        end
+        setup { @instance.save }
+        should_change '@instance.token', :to => /^\w{40}$/
 
-        should_change '@instance.token'
+        context 'save again' do
+          setup { @instance.save }
+          should_not_change '@instance.token'
+        end
+      end
+    end
+
+    context 'even when the default date format is short' do
+      setup do
+        @default = Time::DATE_FORMATS[:default]
+        Time::DATE_FORMATS[:default] = '%d %b'
+      end
+
+      context 'lots of saved instances' do
+        setup { @instances = (1..1000).collect { @klass.create }}
+
+        should 'have unique tokens' do
+          assert_unique @instances.map(&:token)
+        end
+      end
+
+      teardown do
+        Time::DATE_FORMATS[:default] = @default
       end
     end
   end
