@@ -1,4 +1,4 @@
-require 'test_helper'
+require File.join(File.dirname(__FILE__), 'test_helper')
 
 class HasDigestTest < Test::Unit::TestCase
   context 'Model with a standalone digest' do
