@@ -46,7 +46,7 @@ class HasDigestTest < Test::Unit::TestCase
     setup do
       @klass = model_with_attributes(:encrypted_password) do
         attr_accessor :password
-        has_digest :encrypted_password, :include => :password
+        has_digest :encrypted_password, :depends => :password
       end
     end
 
@@ -73,7 +73,7 @@ class HasDigestTest < Test::Unit::TestCase
     setup do
       @klass = model_with_attributes(:remember_me_token) do
         attr_accessor :login, :remember_me_token_expires_at
-        has_digest :remember_me_token, :include => [:login, :remember_me_token_expires_at]
+        has_digest :remember_me_token, :depends => [:login, :remember_me_token_expires_at]
       end
     end
 
@@ -96,6 +96,57 @@ class HasDigestTest < Test::Unit::TestCase
           assert_nil @instance.remember_me_token
         end
       end
+    end
+  end
+
+  context 'Model with a magic salt column but no other digests' do
+    setup { @klass = model_with_attributes(:salt) }
+
+    context 'saved instance' do
+      setup { @instance = @klass.create }
+
+      should 'not have digested attribute' do
+        assert_nil @instance.salt
+      end
+    end
+  end
+
+  context 'Model with a magic salt column and an attribute-based digest' do
+    setup do
+      @klass = model_with_attributes(:salt, :encrypted_password) do
+        attr_accessor :password
+        has_digest :encrypted_password, :depends => :password
+      end
+    end
+
+    context 'saved instance' do
+      setup { @instance = @klass.create(:password => 'PASSWORD') }
+
+      should 'have digested salt attribute' do
+        assert_not_nil @instance.salt
+      end
+
+      should 'have digested encrypted_password attribute' do
+        assert_not_nil @instance.encrypted_password
+      end
+
+      should 'have used salt to digest encrypted password' do
+        assert_equal @instance.digest(@instance.salt, 'PASSWORD'), @instance.encrypted_password
+      end
+    end
+  end
+
+  should 'not set up magic salt callback multiple times' do
+    klass = model_with_attributes(:salt, :token, :encrypted_password)
+
+    klass.stubs(:before_save).with(:digest_token)
+    klass.stubs(:before_save).with(:digest_encrypted_password)
+    klass.expects(:before_save).with(:digest_salt).once
+
+    klass.class_eval do
+      attr_accessor :password
+      has_digest :encrypted_password, :depends => :password
+      has_digest :token
     end
   end
 end

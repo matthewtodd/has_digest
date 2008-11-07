@@ -7,7 +7,7 @@ module HasDigest
 
   def digest(*values)
     if values.empty?
-      Digest::SHA1.hexdigest(random_string)
+      Digest::SHA1.hexdigest(Time.now.to_default_s.split(//).sort_by { Kernel.rand }.join)
     elsif values.all?
       Digest::SHA1.hexdigest(values.join('--'))
     else
@@ -15,33 +15,31 @@ module HasDigest
     end
   end
 
-  def random_string
-    Time.now.to_default_s.split(//).sort_by { Kernel.rand }.join
-  end
-
   module ClassMethods
     def has_digest(attribute, options = {})
       digest_attribute = "digest_#{attribute}".to_sym
 
-      if options[:include]
-        before_save digest_attribute
+      if column_names.include?('salt') && !instance_methods.include?('digest_salt')
+        before_save :digest_salt
 
-        define_method(digest_attribute) do
-          values = case options[:include]
-            when String, Symbol
-              [self.send(options[:include])]
-            else
-              options[:include].map { |attribute_name| self.send(attribute_name) }
-            end
+        define_method('digest_salt') do
+          self.salt = digest if self.new_record?
+        end
+      end
+
+      before_save digest_attribute
+
+      define_method(digest_attribute) do
+        if options[:depends]
+          values = []
+          values << :salt if self.class.column_names.include?('salt')
+          values << options[:depends]
+          values.flatten!
+          values.map! { |value| self.send(value) }
 
           self[attribute] = digest(*values)
-        end
-
-      else
-        before_create digest_attribute
-
-        define_method(digest_attribute) do
-          self[attribute] = digest
+        else
+          self[attribute] = digest if self.new_record?
         end
       end
     end

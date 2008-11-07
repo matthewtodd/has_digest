@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'test/unit'
 require 'shoulda'
+require 'mocha'
 require 'active_record'
 require File.join(File.dirname(__FILE__), '..', 'lib', 'has_digest.rb')
 
@@ -16,7 +17,7 @@ def model_with_attributes(*attributes, &block)
   ActiveRecord::Base.send(:include, HasDigest)
   Object.send(:remove_const, 'Model') rescue nil
   Object.const_set('Model', Class.new(ActiveRecord::Base))
-  Model.class_eval &block
+  Model.class_eval(&block) if block_given?
 
   return Model
 end
