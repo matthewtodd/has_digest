@@ -1,8 +1,7 @@
 module HasDigest
   module Shoulda
-    # Asserts that the necessary database columns exist to support
-    # <tt>has_digest :name</tt> and that the necessary callback methods have
-    # been created.
+    # Asserts that <tt>has_digest :name</tt> has been called with the given
+    # options, and that the necessary database columns are present.
     def should_have_digest(name, options = {})
       options.assert_valid_keys(:depends)
 
