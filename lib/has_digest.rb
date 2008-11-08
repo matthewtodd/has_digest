@@ -2,6 +2,7 @@ require 'digest/sha1'
 
 module HasDigest
   def self.included(base) # :nodoc:
+    base.before_save :generate_has_digest_attributes
     base.extend(ClassMethods)
   end
 
@@ -23,6 +24,28 @@ module HasDigest
       Digest::SHA1.hexdigest(values.join('--'))
     else
       nil
+    end
+  end
+
+  def generate_has_digest_attributes # :nodoc:
+    if new_record?
+      if attribute_names.include?('salt')
+        self[:salt] = digest
+      end
+
+      self.class.standalone_has_digest_attributes.each do |name, options|
+        self[name] = digest
+      end
+    end
+
+    lookup_value = lambda { |dependency| send(dependency) }
+    self.class.dependent_has_digest_attributes.each do |name, options|
+      dependencies           = options[:dependencies]
+      synthetic_dependencies = options[:synthetic_dependencies]
+
+      if synthetic_dependencies.all?(&lookup_value)
+        self[name] = digest(*dependencies.map(&lookup_value))
+      end
     end
   end
 
@@ -75,17 +98,7 @@ module HasDigest
     #     has_digest :api_token, :depends => :generate_api_token
     #   end
     def has_digest(attribute, options = {})
-      digest_attribute = "digest_#{attribute}".to_sym
-
-      if column_names.include?('salt') && !instance_methods.include?('digest_salt')
-        before_save :digest_salt
-
-        define_method('digest_salt') do
-          self.salt = digest if self.new_record?
-        end
-      end
-
-      before_save digest_attribute
+      options.assert_valid_keys(:depends)
 
       if options[:depends]
         dependencies = []
@@ -96,15 +109,22 @@ module HasDigest
         synthetic_dependencies = dependencies - column_names.map(&:to_sym)
         synthetic_dependencies.each { |name| attr_accessor name }
 
-        define_method(digest_attribute) do
-          value = lambda { |name| send(name) }
-          self[attribute] = digest(*dependencies.map(&value)) if synthetic_dependencies.map(&value).all?
-        end
+        write_inheritable_hash :has_digest_attributes, attribute => { :dependencies => dependencies, :synthetic_dependencies => synthetic_dependencies }
       else
-        define_method(digest_attribute) do
-          self[attribute] = digest if self.new_record?
-        end
+        write_inheritable_hash :has_digest_attributes, attribute => {}
       end
+    end
+
+    def has_digest_attributes # :nodoc:
+      read_inheritable_attribute(:has_digest_attributes) || write_inheritable_attribute(:has_digest_attributes, {})
+    end
+
+    def dependent_has_digest_attributes # :nodoc:
+      has_digest_attributes.reject { |name, options| !options.has_key?(:dependencies) }
+    end
+
+    def standalone_has_digest_attributes # :nodoc:
+      has_digest_attributes.reject { |name, options| options.has_key?(:dependencies) }
     end
   end
 end
