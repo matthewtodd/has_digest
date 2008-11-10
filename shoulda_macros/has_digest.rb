@@ -1,12 +1,17 @@
 module HasDigest
   module Shoulda
     # Asserts that <tt>has_digest :name</tt> has been called with the given
-    # options, and that the necessary database columns are present.
+    # options, and that the necessary database columns are present. +options+
+    # may contain two keys:
+    # * +depends+: either a single attribute name or an array of attribtues
+    #   names. (Specifying <tt>:salt</tt> here is unnecessary.)
+    # * +limit+: if your db column for the given digest doesn't have
+    #   <tt>:limit => 40</tt>, you may specify its size here.
     def should_have_digest(name, options = {})
-      options.assert_valid_keys(:depends)
+      options.assert_valid_keys(:depends, :limit)
 
       context "#{model_class.name} with has_digest :#{name}" do
-        should_have_db_column name, :type => :string, :limit => 40
+        should_have_db_column name, :type => :string, :limit => (options[:limit] || 40)
 
         should "generate digest for :#{name}" do
           assert_not_nil model_class.has_digest_attributes[name]
