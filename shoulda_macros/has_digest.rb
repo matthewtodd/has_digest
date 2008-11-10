@@ -14,7 +14,7 @@ module HasDigest
         should_have_db_column name, :type => :string, :limit => (options[:limit] || 40)
 
         should "generate digest for :#{name}" do
-          assert_not_nil model_class.has_digest_attributes[name]
+          assert_not_nil self.class.model_class.has_digest_attributes[name]
         end
 
         if options[:depends]
@@ -23,7 +23,7 @@ module HasDigest
           dependencies.unshift(:salt) if model_class.column_names.include?('salt')
 
           should "generate digest for :#{name} from #{dependencies.to_sentence}" do
-            attributes = model_class.has_digest_attributes[name] || {}
+            attributes = self.class.model_class.has_digest_attributes[name] || {}
             assert_equal dependencies, attributes[:dependencies]
           end
         end
