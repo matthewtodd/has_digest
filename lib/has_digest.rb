@@ -21,7 +21,7 @@ module HasDigest
     if values.empty?
       Digest::SHA1.hexdigest(Time.now.to_default_s.split(//).sort_by { Kernel.rand }.join)
     elsif values.all?
-      Digest::SHA1.hexdigest(values.join('--'))
+      Digest::SHA1.hexdigest("--#{values.join('--')}--")
     else
       nil
     end
