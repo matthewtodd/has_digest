@@ -1,1 +1,1 @@
-ActiveRecord::Base.send(:include, HasDigest)
+require 'has_digest'

@@ -5,7 +5,18 @@ HasDigest is an +ActiveRecord+ macro that makes it easy to write things like enc
 See the documentation for the +has_digest+ method for options.
 
 
-==Example
+==Installation
+
+As a gem:
+
+  config.gem 'matthewtodd-has_digest', :lib => 'has_digest', :source => 'http://gems.github.com'
+
+As a plugin:
+
+  script/plugin install git://github.com/matthewtodd/has_digest.git
+
+
+==Usage
 
 In your model:
 
