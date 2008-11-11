@@ -8,12 +8,12 @@ task :default => :test
 
 spec = Gem::Specification.new do |spec|
   spec.name             = 'has_digest'
-  spec.version          = '0.1.0'
+  spec.version          = '0.1.1'
   spec.summary          = 'ActiveRecord macro that helps encrypt passwords and generate api tokens before_save.'
   spec.files            = FileList['README.rdoc', 'MIT-LICENSE', 'init.rb', 'lib/**/*.rb', 'shoulda_macros/**/*.rb', 'test/**/*.rb'].to_a
   spec.has_rdoc         = true
   spec.rdoc_options     = %W[--main README.rdoc --title #{spec.name}-#{spec.version} --inline-source --line-numbers]
-  spec.extra_rdoc_files = FileList['README.rdoc'].to_a
+  spec.extra_rdoc_files = FileList['README.rdoc', 'shoulda_macros/**/*.rb'].to_a
   spec.author           = 'Matthew Todd'
   spec.email            = 'matthew.todd@gmail.com'
 end
