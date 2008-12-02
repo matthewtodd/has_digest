@@ -97,6 +97,18 @@ class HasDigestTest < Test::Unit::TestCase
     end
   end
 
+  context 'Model with a magic salt column' do
+    setup { @klass = model_with_attributes(:salt) }
+
+    context 'saved instance' do
+      setup { @instance = @klass.create }
+
+      should 'not have digested salt attribute' do
+        assert_nil @instance.salt
+      end
+    end
+  end
+
   context 'Model with a magic salt column and an attribute-based digest' do
     setup do
       @klass = model_with_attributes(:salt, :encrypted_password) do

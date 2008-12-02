@@ -2,7 +2,7 @@ require 'digest/sha1'
 
 module HasDigest
   def self.included(base) # :nodoc:
-    base.before_save :generate_has_digest_attributes
+    base.before_save :generate_has_digest_attributes, :unless => lambda { |record| record.class.has_digest_attributes.empty? }
     base.extend(ClassMethods)
   end
 
