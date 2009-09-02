@@ -14,6 +14,6 @@ else
   require 'shoe'
 end
 
-Shoe.tie('has_digest', '0.1.2', 'ActiveRecord macro that helps encrypt passwords and generate api tokens before_save.') do |spec|
+Shoe.tie('has_digest', '0.1.3', 'ActiveRecord macro that helps encrypt passwords and generate api tokens before_save.') do |spec|
   spec.add_development_dependency 'thoughtbot-shoulda'
 end
