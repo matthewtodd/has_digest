@@ -1,16 +1,18 @@
 require 'rubygems'
 require 'test/unit'
-require 'shoulda'
-require 'mocha'
 require 'active_record'
+require 'shoulda'
+require 'shoulda/active_record'
+require 'mocha'
 require File.join(File.dirname(__FILE__), '..', 'lib', 'has_digest.rb')
+require File.join(File.dirname(__FILE__), '..', 'shoulda_macros', 'has_digest.rb')
 
 ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database => ':memory:')
 
 def model_with_attributes(*attributes, &block)
   ActiveRecord::Base.connection.create_table :models, :force => true do |table|
     attributes.each do |attribute|
-      table.string attribute
+      table.string attribute, :limit => 40
     end
   end
 

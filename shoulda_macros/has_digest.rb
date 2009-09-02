@@ -10,20 +10,20 @@ module HasDigest
     def should_have_digest(name, options = {})
       options.assert_valid_keys(:depends, :limit)
 
-      context "#{model_class.name} with has_digest :#{name}" do
+      context "#{described_type.name} with has_digest :#{name}" do
         should_have_db_column name, :type => :string, :limit => (options[:limit] || 40)
 
         should "generate digest for :#{name}" do
-          assert_not_nil self.class.model_class.has_digest_attributes[name]
+          assert_not_nil self.class.described_type.has_digest_attributes[name]
         end
 
         if options[:depends]
           dependencies = options[:depends]
           dependencies = [dependencies] unless dependencies.respond_to?(:each)
-          dependencies.unshift(:salt) if model_class.column_names.include?('salt')
+          dependencies.unshift(:salt) if described_type.column_names.include?('salt')
 
           should "generate digest for :#{name} from #{dependencies.to_sentence}" do
-            attributes = self.class.model_class.has_digest_attributes[name] || {}
+            attributes = self.class.described_type.has_digest_attributes[name] || {}
             assert_equal dependencies, attributes[:dependencies]
           end
         end
