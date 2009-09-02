@@ -13,11 +13,11 @@ class HasDigestTest < Test::Unit::TestCase
 
       context 'save' do
         setup { @instance.save }
-        should_change '@instance.token', :to => /^\w{40}$/
+        should_change('@instance.token', :to => /^\w{40}$/) { @instance.token }
 
         context 'save again' do
           setup { @instance.save }
-          should_not_change '@instance.token'
+          should_not_change('@instance.token') { @instance.token }
         end
       end
 
@@ -49,12 +49,12 @@ class HasDigestTest < Test::Unit::TestCase
 
       context 'saved again' do
         setup { @instance.save }
-        should_not_change '@instance.encrypted_password'
+        should_not_change('@instance.encrypted_password') { @instance.encrypted_password }
       end
 
       context 'updated' do
         setup { @instance.update_attributes(:password => 'NEW PASSWORD') }
-        should_change '@instance.encrypted_password'
+        should_change('@instance.encrypted_password') { @instance.encrypted_password }
       end
 
       context 'loaded completely fresh' do
@@ -62,7 +62,7 @@ class HasDigestTest < Test::Unit::TestCase
 
         context 'and saved' do
           setup { @instance.save }
-          should_not_change '@instance.encrypted_password'
+          should_not_change('@instance.encrypted_password') { @instance.encrypted_password }
         end
       end
     end
@@ -84,7 +84,7 @@ class HasDigestTest < Test::Unit::TestCase
 
       context 'update one attribute' do
         setup { @instance.update_attributes(:remember_me_until => 3.weeks.from_now) }
-        should_change '@instance.remember_me_token'
+        should_change('@instance.remember_me_token') { @instance.remember_me_token }
       end
 
       context 'update one attribute to nil' do
